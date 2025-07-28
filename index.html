@@ -1,0 +1,1544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chemistry Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- MathJax CDN for rendering chemical expressions -->
+    <script type="text/javascript" id="MathJax-script" async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js">
+    </script>
+    <script>
+        // Configure MathJax to process LaTeX-like syntax
+        MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']]
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            color: #f0f8ff;
+            line-height: 1.6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 1rem;
+            box-sizing: border-box;
+        }
+        
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .quiz-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 1.5rem;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            padding: 2.5rem;
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+        }
+        
+        .quiz-header {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 2rem;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            background: linear-gradient(90deg, #4facfe, #00f2fe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            position: relative;
+            padding-bottom: 15px;
+        }
+        
+        .quiz-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 25%;
+            width: 50%;
+            height: 4px;
+            background: linear-gradient(90deg, #4facfe, #00f2fe);
+            border-radius: 2px;
+        }
+        
+        .language-selector {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            z-index: 10;
+        }
+        
+        .language-selector select {
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.15);
+            font-size: 0.9rem;
+            color: white;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+        }
+        
+        .language-selector select option {
+            background: rgba(30, 30, 60, 0.9);
+            color: white;
+        }
+        
+        .home-screen, .quiz-content, .result-screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+        
+        .home-screen.show, .quiz-content.show, .result-screen.show {
+            display: flex;
+        }
+        
+        .home-info {
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #e0f7ff;
+            background: rgba(0, 0, 40, 0.3);
+            padding: 1.5rem;
+            border-radius: 1rem;
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .home-info p {
+            margin-bottom: 0.75rem;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .start-button {
+            background: linear-gradient(90deg, #00c6ff, #0072ff);
+            color: white;
+            padding: 1rem 2.5rem;
+            border-radius: 0.75rem;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 114, 255, 0.4);
+            margin-top: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .start-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 114, 255, 0.6);
+        }
+        
+        .start-button:active {
+            transform: translateY(1px);
+        }
+        
+        .start-button::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -60%;
+            width: 20px;
+            height: 200%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(25deg);
+            transition: all 0.5s;
+        }
+        
+        .start-button:hover::after {
+            left: 120%;
+        }
+        
+        .question-area {
+            min-height: 180px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-start;
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: rgba(0, 20, 40, 0.4);
+            border-radius: 0.75rem;
+            border: 1px solid rgba(100, 200, 255, 0.2);
+            text-align: left;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .question-text {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #e0f7ff;
+            margin-bottom: 1.25rem;
+            width: 100%;
+        }
+        
+        .options-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            width: 100%;
+        }
+        
+        .option-item {
+            background: rgba(30, 50, 80, 0.4);
+            border: 1px solid rgba(100, 180, 255, 0.3);
+            border-radius: 0.75rem;
+            padding: 1rem 1.5rem;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+            font-size: 1.05rem;
+            color: #c0e8ff;
+            display: flex;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .option-item:hover {
+            background: rgba(40, 100, 180, 0.5);
+            border-color: rgba(100, 200, 255, 0.5);
+            transform: translateX(5px);
+        }
+        
+        .option-item.selected {
+            background: linear-gradient(90deg, rgba(0, 150, 255, 0.7), rgba(0, 100, 200, 0.7));
+            color: white;
+            border-color: rgba(100, 200, 255, 0.7);
+            box-shadow: 0 0 15px rgba(0, 150, 255, 0.4);
+        }
+        
+        .option-label {
+            font-weight: 700;
+            margin-right: 1rem;
+            min-width: 2rem;
+            height: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 50, 100, 0.4);
+            border-radius: 50%;
+            border: 1px solid rgba(100, 200, 255, 0.3);
+        }
+        
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2rem;
+            width: 100%;
+        }
+        
+        .nav-button {
+            background: linear-gradient(90deg, #00c6ff, #0072ff);
+            color: white;
+            padding: 0.85rem 1.75rem;
+            border-radius: 0.75rem;
+            border: none;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 10px rgba(0, 114, 255, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .nav-button i {
+            margin-right: 0.5rem;
+        }
+        
+        .nav-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 114, 255, 0.5);
+        }
+        
+        .nav-button:active {
+            transform: translateY(0);
+        }
+        
+        .nav-button:disabled {
+            background: linear-gradient(90deg, #666, #888);
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+            opacity: 0.6;
+        }
+        
+        .message-box {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(90deg, #00b09b, #96c93d);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease;
+            transform: translateY(-20px);
+            display: flex;
+            align-items: center;
+        }
+        
+        .message-box.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .message-box i {
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+        
+        .result-screen {
+            min-height: 300px;
+            text-align: center;
+            padding: 2rem;
+            background: rgba(0, 20, 40, 0.4);
+            border-radius: 1rem;
+            border: 1px solid rgba(100, 200, 255, 0.2);
+            backdrop-filter: blur(5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .score-text {
+            font-size: 3rem;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(90deg, #4facfe, #00f2fe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .restart-button {
+            background: linear-gradient(90deg, #ff8a00, #ff2070);
+            color: white;
+            padding: 1rem 2.5rem;
+            border-radius: 0.75rem;
+            border: none;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 138, 0, 0.4);
+            margin-top: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .restart-button i {
+            margin-right: 0.5rem;
+        }
+        
+        .restart-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(255, 138, 0, 0.6);
+        }
+        
+        .question-counter {
+            position: absolute;
+            top: 1.5rem;
+            left: 1.5rem;
+            background: rgba(0, 50, 100, 0.5);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(100, 200, 255, 0.2);
+        }
+        
+        .subject-badge {
+            position: absolute;
+            top: 1.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(200, 50, 100, 0.7);
+            color: white;
+            padding: 0.3rem 1rem;
+            border-radius: 2rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 150, 180, 0.3);
+        }
+        
+        .flask-icon {
+            position: absolute;
+            top: 10px;
+            right: 70px;
+            font-size: 1.5rem;
+            color: rgba(100, 200, 255, 0.8);
+        }
+
+        .logo {
+            margin-bottom: 1rem; /* Adjust as needed for spacing */
+            text-align: center;
+        }
+
+        .logo img {
+            max-width: 100px; /* Adjust logo size */
+            height: auto;
+            border-radius: 8px; /* Optional: adds rounded corners to the logo */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Optional: adds a subtle shadow */
+        }
+        
+        .bubble {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            animation: float 15s infinite ease-in-out;
+            z-index: -1;
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+            100% { transform: translateY(0) rotate(360deg); }
+        }
+        
+        .progress-bar {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            margin: 1rem 0;
+            overflow: hidden;
+        }
+        
+        .progress {
+            height: 100%;
+            background: linear-gradient(90deg, #00c6ff, #0072ff);
+            border-radius: 3px;
+            transition: width 0.4s ease;
+        }
+        
+        /* Chemistry-themed decorations */
+        .atom {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            top: 20%;
+            left: 5%;
+            z-index: -1;
+            opacity: 0.1;
+        }
+        
+        .molecule {
+            position: absolute;
+            width: 150px;
+            height: 150px;
+            bottom: 10%;
+            right: 5%;
+            z-index: -1;
+            opacity: 0.1;
+        }
+        
+        /* Animation for atom */
+        .electron {
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            background: rgba(100, 200, 255, 0.6);
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(100, 200, 255, 0.8);
+        }
+        
+        .electron:nth-child(1) {
+            animation: orbit1 4s linear infinite;
+        }
+        
+        .electron:nth-child(2) {
+            animation: orbit2 6s linear infinite;
+        }
+        
+        .electron:nth-child(3) {
+            animation: orbit3 5s linear infinite;
+        }
+        
+        @keyframes orbit1 {
+            0% { transform: rotate(0deg) translateX(40px) rotate(0deg); }
+            100% { transform: rotate(360deg) translateX(40px) rotate(-360deg); }
+        }
+        
+        @keyframes orbit2 {
+            0% { transform: rotate(120deg) translateX(60px) rotate(-120deg); }
+            100% { transform: rotate(480deg) translateX(60px) rotate(-480deg); }
+        }
+        
+        @keyframes orbit3 {
+            0% { transform: rotate(240deg) translateX(80px) rotate(-240deg); }
+            100% { transform: rotate(600deg) translateX(80px) rotate(-600deg); }
+        }
+        
+        .nucleus {
+            position: absolute;
+            width: 25px;
+            height: 25px;
+            background: rgba(255, 100, 100, 0.8);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 15px rgba(255, 100, 100, 0.8);
+        }
+        
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .quiz-container {
+                padding: 1.5rem;
+            }
+            
+            .quiz-header {
+                font-size: 2rem;
+            }
+            
+            .navigation-buttons {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .nav-button {
+                width: 100%;
+            }
+            
+            .question-area {
+                padding: 1rem;
+            }
+            
+            .atom, .molecule {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Decorative bubbles -->
+    <div class="bubble" style="width: 40px; height: 40px; top: 10%; left: 10%;"></div>
+    <div class="bubble" style="width: 60px; height: 60px; top: 70%; left: 15%; animation-delay: -2s;"></div>
+    <div class="bubble" style="width: 30px; height: 30px; top: 40%; left: 85%; animation-delay: -5s;"></div>
+    <div class="bubble" style="width: 50px; height: 50px; top: 20%; left: 80%; animation-delay: -7s;"></div>
+    
+    <!-- Atom decoration -->
+    <div class="atom">
+        <div class="nucleus"></div>
+        <div class="electron"></div>
+        <div class="electron"></div>
+        <div class="electron"></div>
+    </div>
+    
+    <!-- Molecule decoration -->
+    <div class="molecule">
+        <div style="position: absolute; width: 20px; height: 20px; background: rgba(100, 200, 100, 0.6); border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%, -50%); box-shadow: 0 0 10px rgba(100, 200, 100, 0.8);"></div>
+        <div style="position: absolute; width: 15px; height: 15px; background: rgba(200, 100, 200, 0.6); border-radius: 50%; top: 30%; left: 30%; box-shadow: 0 0 10px rgba(200, 100, 200, 0.8);"></div>
+        <div style="position: absolute; width: 15px; height: 15px; background: rgba(100, 150, 255, 0.6); border-radius: 50%; top: 70%; left: 70%; box-shadow: 0 0 10px rgba(100, 150, 255, 0.8);"></div>
+    </div>
+
+    <div class="quiz-container">
+        <div class="language-selector">
+            <select id="language-select">
+                <option value="gu">ગુજરાતી</option>
+                <option value="en">English</option>
+            </select>
+        </div>
+        
+        <div class="flask-icon">
+            <i class="fas fa-flask"></i>
+        </div>
+
+        <div class="logo">
+            <img src="https://raw.githubusercontent.com/pisaiyad/std11ch1/refs/heads/main/logo.png" alt="Quiz Logo">
+        </div>
+        
+        <h1 id="main-quiz-header" class="quiz-header"></h1>
+
+        <div id="home-screen" class="home-screen">
+            <div class="home-info">
+                <p id="chapter-info"></p>
+                <p id="questions-count"></p>
+                <p id="scoring-info"></p>
+                <p id="results-info"></p>
+            </div>
+            <button id="start-quiz-button" class="start-button">
+                <i class="fas fa-play"></i>
+            </button>
+        </div>
+
+        <div id="quiz-content" class="quiz-content">
+            <div class="question-counter" id="question-counter"></div>
+            <div class="subject-badge" id="subject-badge"></div>
+            
+            <div class="progress-bar">
+                <div class="progress" id="progress-bar"></div>
+            </div>
+            
+            <div class="question-area">
+                <p id="question-text" class="question-text">Loading question...</p>
+                <ul id="options-list" class="options-list">
+                    <!-- Options will be dynamically loaded here -->
+                </ul>
+            </div>
+
+            <div class="navigation-buttons">
+                <button id="prev-button" class="nav-button">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <button id="next-button" class="nav-button">
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <div id="result-screen" class="result-screen">
+            <p id="score-text" class="score-text"></p>
+            <button id="restart-button" class="restart-button">
+                <i class="fas fa-redo"></i>
+            </button>
+        </div>
+    </div>
+
+    <div id="message-box" class="message-box"></div>
+
+    <script>
+        // Chemistry questions only (46-90)
+        const chemistryQuestionsData = [
+            {
+                "id": 46,
+                "subject": "Chemistry",
+                "question": {
+                    "gu": "H2SO4 1 L જલીય દ્રાવણ 0.02 m mol $H_{2}SO_{4}$ ધરાવે છે. આ દ્રાવણમાંથી 50% ને નિસ્યંદિત પાણી વડે મંદ કરીને 1 L દ્રાવણ (A) બનાવવામાં આવે છે. દ્રાવણ (A) માં $H_{2}SO_{4}$ ના 0.01 m mol ઉમેરવામાં આવે છે. તો અંતિમ દ્રાવણમાં $H_{2}SO_{4}$ ના કુલ mmols. _____ $\\times 10^{3}$ m mols છે.",
+                    "en": "1 L aqueous solution of H2SO4 contains 0.02 m mol $H_{2}SO_{4}$. 50% of this solution is diluted with distilled water to make 1 L solution (A). 0.01 m mol of $H_{2}SO_{4}$ is added to solution (A). Then the total mmols of $H_{2}SO_{4}$ in the final solution is _____ $\\times 10^{3}$ m mols."
+                },
+                "options": {
+                    "A": { "gu": "3", "en": "3" },
+                    "B": { "gu": "1", "en": "1" },
+                    "C": { "gu": "2", "en": "2" },
+                    "D": { "gu": "0", "en": "0" }
+                }
+            },
+            {
+                "id": 47,
+                "subject": "Chemistry",
+                "question": {
+                    "gu": "એક સંયોજન A 8.7% હાઈડ્રોજન, 74% કાર્બન અને 17.3% નાઈટ્રોજન ધરાવે છે. સંયોજન A નું મોલર દળ $162~g~mol^{-1}$ છે. સંયોજનનું અણુસૂત્ર શોધો.\nઆપેલ : કાર્બન, હાઈડ્રોજન અને નાઈટ્રોજન ના પરમાણ્વીય દળો અનુક્રમે 12, 1 અને 14 amu છે.",
+                    "en": "A compound A contains 8.7% hydrogen, 74% carbon and 17.3% nitrogen. The molar mass of compound A is $162~g~mol^{-1}$. Find the molecular formula of the compound.\nGiven: Atomic masses of Carbon, Hydrogen and Nitrogen are 12, 1 and 14 amu respectively."
+                },
+                "options": {
+                    "A": { "gu": "$C_{4}H_{6}N_{2}$", "en": "$C_{4}H_{6}N_{2}$" },
+                    "B": { "gu": "$C_{2}H_{3}N$", "en": "$C_{2}H_{3}N$" },
+                    "C": { "gu": "$C_{5}H_{7}N$", "en": "$C_{5}H_{7}N$" },
+                    "D": { "gu": "$C_{10}H_{14}N_{2}$", "en": "$C_{10}H_{14}N_{2}$" }
+                }
+            },
+            {
+                "id": 48,
+                "subject": "Chemistry",
+                "question": {
+                    "gu": "ધારી લો કે નીચે આપેલા સમીકરણ પ્રમાણે કાર્બન સળગે છે.\n$2C_{(s)}+O_{2(g)}\\rightarrow2CO_{(g)}$\nજ્યારે 12 g કાર્બન 48 g ઓક્સિજનમાં સળગે છે તો ઉત્પન્ન થતા કાર્બન મોનોક્સાઈડ નું કદ STP પર _____ $\\times 10^{-1}$ L થાય (પૂર્ણાંક માં જવાબ).\n[આપેલ : CO ને આદર્શ વાયુ ધારી લો. પરમાણ્વીય દળ C નું 12 u, O નું 16 u અને STP પર એક આદર્શ વાયુ મોલર કદ $22.7~L~mol^{-1}$ છે.]",
+                    "en": "Assume that carbon burns according to the equation given below:\n$2C_{(s)}+O_{2(g)}\\rightarrow2CO_{(g)}$\nWhen 12 g of carbon burns in 48 g of oxygen, the volume of carbon monoxide produced at STP is (answer in integer) _____ $\\times 10^{-1}$ L.\n[Given: Assume CO is an ideal gas. Atomic mass of C is 12 u, O is 16 u and molar volume of an ideal gas at STP is $22.7~L~mol^{-1}.]$"
+                },
+                "options": {
+                    "A": { "gu": "226", "en": "226" },
+                    "B": { "gu": "223", "en": "223" },
+                    "C": { "gu": "227", "en": "227" },
+                    "D": { "gu": "229", "en": "229" }
+                }
+            },
+            {
+                "id": 49,
+                "subject": "Chemistry",
+                "question": {
+                    "gu": "$[Cr(H_{2}O)_{5}Cl]Cl_{2}$ ના $0.01~M$ દ્રાવણના 20 mL માં હાજર કલોરાઈડ આયનોના સંપૂર્ણ અવક્ષેપન સિલ્વર કલોરાઇડ તરીકે કરવા માટે $0.1~M~AgNO_{3}$ નું જરૂરી કદ (mL માં) .. .",
+                    "en": "The required volume (in mL) of $0.1~M~AgNO_{3}$ for complete precipitation of chloride ions present in 20 mL of $0.01~M~[Cr(H_{2}O)_{5}Cl]Cl_{2}$ solution as silver chloride is..."
+                },
+                "options": {
+                    "A": { "gu": "4", "en": "4" },
+                    "B": { "gu": "3", "en": "3" },
+                    "C": { "gu": "2", "en": "2" },
+                    "D": { "gu": "1", "en": "1" }
+                }
+            },
+            {
+                "id": 50,
+                "subject": "Chemistry",
+                "question": {
+                    "gu": "જથ્થો કે જે તાપમાન સાથે બદલાય (ફેરફાર) થાય છે તે ..",
+                    "en": "The quantity that changes with temperature is..."
+                },
+                "options": {
+                    "A": { "gu": "મોલારિટી", "en": "Molarity" },
+                    "B": { "gu": "દળ ટકાવારી", "en": "Mass percentage" },
+                    "C": { "gu": "મોલાલિટી", "en": "Molality" },
+                    "D": { "gu": "મોલ અંશ", "en": "Mole fraction" }
+                }
+            },
+            {
+                "id": 51,
+                "subject": "Chemistry",
+                "question": {
+                    "gu": "$0.8~M~H_{2}SO_{4}$ દ્રાવણ (ઘનતા $1.06~g~cm^{-3}$) ની મોલાલિટી _____ $\\times 10^{-3}$ m.",
+                    "en": "The molality of $0.8~M~H_{2}SO_{4}$ solution (density $1.06~g~cm^{-3}$) is _____ $\\times 10^{-3}$ m."
+                },
+                "options": {
+                    "A": { "gu": "814", "en": "814" },
+                    "B": { "gu": "817", "en": "817" },
+                    "C": { "gu": "816", "en": "816" },
+                    "D": { "gu": "815", "en": "815" }
+                }
+            },
+            {
+                "id": 52,
+                "subject": "Chemistry",
+                "question": {
+                    "gu": "$0.35~M$ 250 mL જલીય દ્રાવણ બનાવવા માટે સોડિયમ એસિટેટ ($CH_{3}COONa$) નું જરૂરી દળ _____ g છે. ($CH_{3}COONa$ નું મોલર દળ $82.02~g~mol^{-1}$ છે.)",
+                    "en": "The required mass of sodium acetate ($CH_{3}COONa$) to prepare $0.35~M$ 250 mL aqueous solution is _____ g. (Molar mass of $CH_{3}COONa$ is $82.02~g~mol^{-1}$.)"
+                },
+                "options": {
+                    "A": { "gu": "6", "en": "6" },
+                    "B": { "gu": "7", "en": "7" },
+                    "C": { "gu": "8", "en": "8" },
+                    "D": { "gu": "9", "en": "9" }
+                }
+            },
+            {
+                "id": 53,
+                "subject": "Chemistry",
+                "question": {
+                    "gu": "નીચે આપેલા પ્રક્રિયા ને ધ્યાન માં લો.\n$3PbCl_{2}+2(NH_{4})_{3}PO_{4}\\rightarrow Pb_{3}(PO_{4})_{2}+6NH_{4}Cl$\nજો $PbCl_{2}$ ના 72 m mol $(NH_{4})_{3}PO_{4}$ ના 50 m mol સાથે મિશ્ર કરવામાં આવે તો, બનતા $Pb_{3}(PO_{4})_{2}$ નો જથ્થો m mol છે. (નજીકનો પૂર્ણાંક)",
+                    "en": "Consider the following reaction:\n$3PbCl_{2}+2(NH_{4})_{3}PO_{4}\\rightarrow Pb_{3}(PO_{4})_{2}+6NH_{4}Cl$\nIf 72 m mol of $PbCl_{2}$ is mixed with 50 m mol of $(NH_{4})_{3}PO_{4}$, then the amount of $Pb_{3}(PO_{4})_{2}$ formed is m mol. (nearest integer)"
+                },
+                "options": {
+                    "A": { "gu": "24", "en": "24" },
+                    "B": { "gu": "22", "en": "22" },
+                    "C": { "gu": "25", "en": "25" },
+                    "D": { "gu": "30", "en": "30" }
+                }
+            },
+            {
+                "id": 54,
+                "subject": "Chemistry",
+                "question": {
+                    "gu": "500 mL પાણીમાં 5.85 g, NaCl ધરાવતા એક જલીય દ્રાવણ ની મોલારિટી (M) શોધો. (આપેલ : મોલર દળ Na : 23 અને Cl : $35.5~g~mol^{-1}$)",
+                    "en": "Find the molarity (M) of an aqueous solution containing 5.85 g of NaCl in 500 mL of water. (Given: Molar mass Na: 23 and Cl: $35.5~g~mol^{-1}$)"
+                },
+                "options": {
+                    "A": { "gu": "20", "en": "20" },
+                    "B": { "gu": "0.2", "en": "0.2" },
+                    "C": { "gu": "2", "en": "2" },
+                    "D": { "gu": "4", "en": "4" }
+                }
+            },
+            {
+                "id": 55,
+                "subject": "Chemistry",
+                "question": {
+                    "gu": "1 ગ્રામ સોડિયમ હાઈડ્રોક્સાઈડની $0.75~M~HCl$ દ્રાવણના 25 mL સાથે પ્રક્રિયા કરવામાં આવી. પ્રક્રિયા ન થયેલ બાકી રહેલ સોડિયમ હાઈડ્રોક્સાઈડનું દળ _____ બરાબર છે.",
+                    "en": "1 gram of sodium hydroxide was reacted with 25 mL of $0.75~M~HCl$ solution. The mass of unreacted sodium hydroxide remaining is equal to _____."
+                },
+                "options": {
+                    "A": { "gu": "250 mg", "en": "250 mg" },
+                    "B": { "gu": "શૂન્ય mg", "en": "Zero mg" },
+                    "C": { "gu": "200 mg", "en": "200 mg" },
+                    "D": { "gu": "750 mg", "en": "750 mg" }
+                }
+            },
+            {
+                "id": 56,
+                "subject": "Chemistry",
+                "question": {
+                    "gu": "અર્થસૂચક સંખ્યાના નિયમનો ઉપયોગ કરી, નીચે આપેલાના સંદર્ભમાં સાચો જવાબ શું હશે?\n$\\frac{0.02858\\times0.112}{0.5702}$",
+                    "en": "Using the rule of significant figures, what will be the correct answer with respect to the following?\n$\\frac{0.02858\\times0.112}{0.5702}$"
+                },
+                "options": {
+                    "A": { "gu": "0.005613", "en": "0.005613" },
+                    "B": { "gu": "0.00561", "en": "0.00561" },
+                    "C": { "gu": "0.0056", "en": "0.0056" },
+                    "D": { "gu": "0.006", "en": "0.006" }
+                }
+            },
+            {
+                "id": 57,
+                "subject": "Chemistry",
+                "question": {
+                    "gu": "5 g NaOH ને વિયોનિડ (deionized water) માં ઓગાળીને બલ્ક દ્રાવણ (stock solution) બનાવવામાં આવ્યું. આ દ્રાવણ નું કેટલું કદ (mL માં) $0.1~M$ નું 500 mL દ્રાવણ બનાવવા માટે જરૂરી બનશે ? આપેલ : Na, O અને H નું મોલર દળ અનુક્રમે 23, 16 અને $1~g~mol^{-1}$ છે.",
+                    "en": "5 g of NaOH was dissolved in deionized water to make a stock solution. What volume (in mL) of this solution will be required to prepare 500 mL of $0.1~M$ solution? Given: Molar mass of Na, O and H are 23, 16 and $1~g~mol^{-1}$ respectively."
+                },
+                "options": {
+                    "A": { "gu": "181", "en": "181" },
+                    "B": { "gu": "182", "en": "182" },
+                    "C": { "gu": "180", "en": "180" },
+                    "D": { "gu": "183", "en": "183" }
+                }
+            },
+            {
+                "id": 58,
+                "subject": "Chemistry",
+                "question": {
+                    "gu": "RNA માં હાજર યુરેસીલ બેઇઝનું બંધારણ નીચે આપેલું છે. યુરેસીલમાં N ના %............ છે.\n(યુરેસીલનું સૂત્ર $C_4H_4N_2O_2$ છે.)\nમોલર દળ $N=14~g~mol^{-1}$, $O=16~g~mol^{-1}$, $C=12~g~mol^{-1}$.",
+                    "en": "The uracil base present in RNA has the following structure. The % of N in uracil is............\n(The formula of uracil is $C_4H_4N_2O_2$.)\nMolar mass $N=14~g~mol^{-1}$, $O=16~g~mol^{-1}$, $C=12~g~mol^{-1}$."
+                },
+                "options": {
+                    "A": { "gu": "24", "en": "24" },
+                    "B": { "gu": "23", "en": "23" },
+                    "C": { "gu": "25", "en": "25" },
+                    "D": { "gu": "22", "en": "22" }
+                }
+            },
+            {
+                "id": 59,
+                "subject": "Chemistry",
+                "question": {
+                    "gu": "સંપૂર્ણ દહન કર્યા બાદ $22~g~CO_{2}$ ને ઉત્પન્ન કરવા માટે મિથેનનું _g છે. (મોલરદળ $g~mol^{-1}$ માં આપેલ છે $C=12.0$, $H=1.0$, $O=16.0)$",
+                    "en": "The required mass of methane to produce $22~g~CO_{2}$ after complete combustion is _g. (Molar mass given in $g~mol^{-1}$ is $C=12.0$, $H=1.0$, $O=16.0)$"
+                },
+                "options": {
+                    "A": { "gu": "5", "en": "5" },
+                    "B": { "gu": "9", "en": "9" },
+                    "C": { "gu": "8", "en": "8" },
+                    "D": { "gu": "12", "en": "12" }
+                }
+            },
+            {
+                "id": 60,
+                "subject": "Chemistry",
+                "question": {
+                    "gu": "એક પદાર્થ 'A' ને 'B' અને 'C' ના મિશ્રણના દ્રાવણમાં તેમના $n_{A}$, $n_{B}$ અને $n_{C}$ moles ની સંખ્યાના સંદર્ભમાં ઓગાળવામાં આવે છે. તો દ્રાવણમાં C ના મોલ અંશ _____ શોધો.",
+                    "en": "A substance 'A' is dissolved in a mixture of 'B' and 'C' in terms of their number of moles $n_{A}$, $n_{B}$ and $n_{C}$. Find the mole fraction of C in the solution."
+                },
+                "options": {
+                    "A": { "gu": "$\\frac{n_{C}}{n_{A}+n_{B}+n_{C}}$", "en": "$\\frac{n_{C}}{n_{A}+n_{B}+n_{C}}$" },
+                    "B": { "gu": "$\\frac{n_{C}}{n_{A}+n_{B}}$", "en": "$\\frac{n_{C}}{n_{A}+n_{B}}$" },
+                    "C": { "gu": "$\\frac{n_{A}}{n_{A}+n_{B}+n_{C}}$", "en": "$\\frac{n_{A}}{n_{A}+n_{B}+n_{C}}$" },
+                    "D": { "gu": "$\\frac{n_{B}}{n_{A}+n_{B}}$", "en": "$\\frac{n_{B}}{n_{A}+n_{B}}$" }
+                }
+            },
+            {
+                "id": 61,
+                "subject": "Chemistry",
+                "question": {
+                    "gu": "NaOH દ્રાવણની ઘનતા $1.2~g~cm^{-3}$ છે. આ દ્રાવણની મોલારિટી . . . . m છે. (નજીકના પૂર્ણાંકમાં)\n[ઉપયોગ: પરમાણ્વીય દળ: Na: 23.0 u, O: 16.0 u, H: 1.0 u, ઘનતા $H_{2}O: 1.0~g~cm^{-3}$]",
+                    "en": "The density of NaOH solution is $1.2~g~cm^{-3}$. The molarity of this solution is . . . . m. (in nearest integer)\n[Use: Atomic mass: Na: 23.0 u; O: 16.0 u; H: 1.0 u; density $H_{2}O: 1.0~g~cm^{-3}$]"
+                },
+                "options": {
+                    "A": { "gu": "6", "en": "6" },
+                    "B": { "gu": "5", "en": "5" },
+                    "C": { "gu": "4", "en": "4" },
+                    "D": { "gu": "1", "en": "1" }
+                }
+            },
+            {
+                "id": 62,
+                "subject": "Chemistry",
+                "question": {
+                    "gu": "4.5 g સંયોજન A (MW=90) નો ઉપયોગ કરીને તેનું 250 mL જલીય દ્રાવણ બનાવવામાં આવ્યું. દ્રાવણની મોલારિટી M એ $x\\times10^{-1}$ છે. તો x નું મૂલ્ય _____ છે. (નજીકના પૂર્ણાંકમાં રાઉન્ડ ઑફ)",
+                    "en": "An aqueous solution of 250 mL was prepared using 4.5 g of compound A (MW=90). The molarity M of the solution is $x\\times10^{-1}$. What is the value of x is _____ . (Round off to nearest integer)"
+                },
+                "options": {
+                    "A": { "gu": "1", "en": "1" },
+                    "B": { "gu": "2", "en": "2" },
+                    "C": { "gu": "3", "en": "3" },
+                    "D": { "gu": "4", "en": "4" }
+                }
+            },
+            {
+                "id": 63,
+                "subject": "Chemistry",
+                "question": {
+                    "gu": "100 મોલલ જલીય દ્રાવણમાં દ્રાવકનો મોલ અંશ _____ $\\times 10^{-2}$",
+                    "en": "The mole fraction of solvent in 100 molal aqueous solution is _____ $\\times 10^{-2}$"
+                },
+                "options": {
+                    "A": { "gu": "64", "en": "64" },
+                    "B": { "gu": "52", "en": "52" },
+                    "C": { "gu": "44", "en": "44" },
+                    "D": { "gu": "62", "en": "62" }
+                }
+            },
+            {
+                "id": 64,
+                "subject": "Chemistry",
+                "question": {
+                    "gu": "ક્લોરિનનું સરેરાશ મોલર દળ $35.5~g~mol^{-1}$ છે. કુદરતી રીતે ઉત્પન્ન થતા ક્લોરિનમાં $^{35}Cl$ થી $^{37}Cl$ નો ગુણોત્તર _____ ની નજીક છે",
+                    "en": "The average molar mass of chlorine is $35.5~g~mol^{-1}$. The ratio of $^{35}Cl$ to $^{37}Cl$ in naturally occurring chlorine is close to _____"
+                },
+                "options": {
+                    "A": { "gu": "4:1", "en": "4:1" },
+                    "B": { "gu": "1:1", "en": "1:1" },
+                    "C": { "gu": "2:1", "en": "2:1" },
+                    "D": { "gu": "3:1", "en": "3:1" }
+                }
+            },
+            {
+                "id": 65,
+                "subject": "Chemistry",
+                "question": {
+                    "gu": "કેલ્શિયમની પાણી સાથેની પ્રતિક્રિયા નીચે મુજબ છે:\n$Ca+2H_{2}O\\rightarrow Ca(OH)_{2}+H_{2}$\n8 gm કેલ્શિયમની પાણી સાથે STP એ સંપૂર્ણ પ્રક્રિયા થાય ત્યારે કેટલા $cm^{3}$ હાઈડ્રોજન ઉત્પન્ન થશે?",
+                    "en": "When 8 gm of calcium completely reacts with water at STP, how many $cm^{3}$ of hydrogen will be produced?"
+                },
+                "options": {
+                    "A": { "gu": "0.2", "en": "0.2" },
+                    "B": { "gu": "0.4", "en": "0.4" },
+                    "C": { "gu": "2240", "en": "2240" },
+                    "D": { "gu": "4480", "en": "4480" }
+                }
+            },
+            {
+                "id": 66,
+                "subject": "Chemistry",
+                "question": {
+                    "gu": "6.50 મોલલ દ્રાવણની ઘનતા $1.89~g~cm^{-3}$ છે. મોલારિટી mol $dm^{-3}$ માં શોધો. [પરમાણ્વીય દળ: K: 39.0 u; O: 16.0 u; H: 1.0 u]",
+                    "en": "The density of 6.50 molal solution is $1.89~g~cm^{-3}$. Find the molarity in mol $dm^{-3}$. [Atomic mass: K: 39.0 u; O: 16.0 u; H: 1.0 u]"
+                },
+                "options": {
+                    "A": { "gu": "3", "en": "3" },
+                    "B": { "gu": "4", "en": "4" },
+                    "C": { "gu": "9", "en": "9" },
+                    "D": { "gu": "7", "en": "7" }
+                }
+            },
+            {
+                "id": 67,
+                "subject": "Chemistry",
+                "question": {
+                    "gu": "$1^{st}$ ઘટકના $n_{1}$ મોલ્સ અને $2^{nd}$ ઘટકના $n_{2}$ મોલ્સ ધરાવતા બે ઘટકોનો દ્રાવણ તૈયાર છે. ઘટક 1 અને 2 ના આણ્વિય દળ અનુક્રમે $M_{1}$ અને $M_{2}$ છે. જો d એ દ્રાવણમાં $2^{nd}$ ઘટકની ઘનતા $g~mL^{-1}$ માં છે, $C_{2}$ એ મોલારિટી છે અને $x_{2}$ એ મોલ અંશ છે તો $C_{2}$ ............ તરીકે વ્યક્ત કરી શકાય છે",
+                    "en": "A solution of two components containing $n_{1}$ moles of $1^{st}$ component and $n_{2}$ moles of $2^{nd}$ component is prepared. The molecular masses of component 1 and 2 are $M_{1}$ and $M_{2}$ respectively. If d is the density of the solution in $g~mL^{-1}$ for the $2^{nd}$ component, $C_{2}$ is the molarity and $x_{2}$ is the mole fraction, then $C_{2}$ can be expressed as............"
+                },
+                "options": {
+                    "A": { "gu": "$C_{2}=\\frac{1000x_{2}}{M_{1}+x_{2}(M_{2}-M_{1})}$", "en": "$C_{2}=\\frac{1000x_{2}}{M_{1}+x_{2}(M_{2}-M_{1})}$" },
+                    "B": { "gu": "$C_{2}=\\frac{dx_{2}}{M_{2}+x_{2}(M_{2}-M_{1})}$", "en": "$C_{2}=\\frac{dx_{2}}{M_{2}+x_{2}(M_{2}-M_{1})}$" },
+                    "C": { "gu": "$C_{2}=\\frac{dx_{1}}{M_{2}+x_{2}(M_{2}-M_{1})}$", "en": "$C_{2}=\\frac{dx_{1}}{M_{2}+x_{2}(M_{2}-M_{1})}$" },
+                    "D": { "gu": "$C_{2}=\\frac{1000dx_{2}}{M_{1}+x_{2}(M_{2}-M_{1})}$", "en": "$C_{2}=\\frac{1000dx_{2}}{M_{1}+x_{2}(M_{2}-M_{1})}$" }
+                }
+            },
+            {
+                "id": 68,
+                "subject": "Chemistry",
+                "question": {
+                    "gu": "10 ગ્રામ પદાર્થમાં $6.023\\times10^{22}$ અણુઓ હાજર છે. 2 લિટર દ્રાવણમાં 5 ગ્રામ પદાર્થ ધરાવતા દ્રાવણની મોલારિટી _____ $\\times 10^{-3}$ M છે.",
+                    "en": "10 grams of substance contains $6.023\\times10^{22}$ molecules. The molarity of a solution containing 5 grams of substance in 2 liters of solution is _____ $\\times 10^{-3}$ M."
+                },
+                "options": {
+                    "A": { "gu": "20", "en": "20" },
+                    "B": { "gu": "25", "en": "25" },
+                    "C": { "gu": "22", "en": "22" },
+                    "D": { "gu": "18", "en": "18" }
+                }
+            },
+            {
+                "id": 69,
+                "subject": "Chemistry",
+                "question": {
+                    "gu": "$2~M$ જલીય NaOHના દ્રાવણની ઘનતા $1.28~g/cm^{3}$ છે, આ દ્રાવણની મોલાલિટી.......m છે.\n[અહીં NaOHનું આણ્વિય દળ $40~g~mol^{-1}$ છે.]",
+                    "en": "The density of $2~M$ aqueous NaOH solution is $1.28~g/cm^{3}$. The molality of this solution is.......m.\n[Here molecular mass of NaOH is $40~g~mol^{-1}$.]"
+                },
+                "options": {
+                    "A": { "gu": "1.20", "en": "1.20" },
+                    "B": { "gu": "1.56", "en": "1.56" },
+                    "C": { "gu": "1.67", "en": "1.67" },
+                    "D": { "gu": "1.32", "en": "1.32" }
+                }
+            },
+            {
+                "id": 70,
+                "subject": "Chemistry",
+                "question": {
+                    "gu": "એક હાઇડ્રોકાર્બનમાં હાઈડ્રોજન અને કાર્બનનો ગુણોત્તર 1 : 3 છે, તો તેનું બંધારણીય સૂત્ર જણાવો",
+                    "en": "In a hydrocarbon, the ratio of hydrogen to carbon is 1 : 3, then state its structural formula."
+                },
+                "options": {
+                    "A": { "gu": "$CH_{4}$", "en": "$CH_{4}$" },
+                    "B": { "gu": "$CH_{2}$", "en": "$CH_{2}$" },
+                    "C": { "gu": "$C_{2}H$", "en": "$C_{2}H$" },
+                    "D": { "gu": "$CH_{3}$", "en": "$CH_{3}$" }
+                }
+            },
+            {
+                "id": 71,
+                "subject": "Chemistry",
+                "question": {
+                    "gu": "એક વાયુમય હાઈડ્રોકાર્બન કે જેના સંપૂર્ણ ઓક્સિડેશન થવા માટે પોતાના કદ કરતા 6 ગણો વધારે $O_{2}$ ની જરૂર છે અને ત્યારબાદ તેમાંથી ઉત્પન્ન થતો $CO_{2}$ પોતાના કરતા 4 ગણું કદ ધરાવે છે તેનું સૂત્ર $C_{x}H_{y}$ છે. તો y નું મૂલ્ય ....... છે.",
+                    "en": "A gaseous hydrocarbon that requires 6 times its volume of $O_{2}$ for complete oxidation and then the $CO_{2}$ produced from it has 4 times its volume. Its formula is $C_{x}H_{y}$. What is the value of y?"
+                },
+                "options": {
+                    "A": { "gu": "13", "en": "13" },
+                    "B": { "gu": "10", "en": "10" },
+                    "C": { "gu": "8", "en": "8" },
+                    "D": { "gu": "5", "en": "5" }
+                }
+            },
+            {
+                "id": 72,
+                "subject": "Chemistry",
+                "question": {
+                    "gu": "NaOH નાં દ્રાવણ વિરૂદ્ધ $1.25~M$ ઓકઝેલિક એસિડ દ્રાવણના અનુમાપનને ધ્યાનમાં લો. અંતિમ બિંદુ પર નીચે મુજબ બ્યુરેટ અવલોકનો મળ્યાં.\n(i) 4.5 mL (ii) 4.5 mL (iii) 4.4 mL\n(iv) 4.4 mL (v) 4.4 mL\nજો ઓકઝેલિક એસિડનું કદ 10.0 mL લેવામાં આવ્યું હોય તો NaOH દ્રાવણની મોલારિટી M છે. (નજીકના પૂર્ણાંકમાં રાઉન્ડ ઑફ કરો)",
+                    "en": "Consider the titration of $1.25~M$ oxalic acid solution against NaOH solution. The following burette readings were obtained at the endpoint.\n(i) 4.5 mL (ii) 4.5 mL (iii) 4.4 mL\n(iv) 4.4 mL (v) 4.4 mL\nIf the volume of oxalic acid taken is 10.0 mL, then the molarity M of NaOH solution is. (Round off to nearest integer)"
+                },
+                "options": {
+                    "A": { "gu": "6", "en": "6" },
+                    "B": { "gu": "16", "en": "16" },
+                    "C": { "gu": "32", "en": "32" },
+                    "D": { "gu": "1", "en": "1" }
+                }
+            },
+            {
+                "id": 73,
+                "subject": "Chemistry",
+                "question": {
+                    "gu": "$NaNO_{3}$ નું _____ g વજન કરી અને તેનું 50 mL જલીય દ્રાવણ બનાવવામાં આવે કે જો $70.0~mg$ પ્રતિ mL $Na^{+}$ ધરાવે. (નજીકનો પૂર્ણાંકમાં રાઉન્ડ ઑફ) (આપેલ : પરમાણ્વીય વજન $g~mol^{-1}$ માં) [Na: 23; N: 14; O: 16]",
+                    "en": "_____ g of $NaNO_{3}$ is weighed and its 50 mL aqueous solution is prepared which contains $70.0~mg$ per mL $Na^{+}$. (Round off to nearest integer) (Given: Atomic weight in $g~mol^{-1}$) [Na: 23; N: 14; O: 16]"
+                },
+                "options": {
+                    "A": { "gu": "19", "en": "19" },
+                    "B": { "gu": "13", "en": "13" },
+                    "C": { "gu": "17", "en": "17" },
+                    "D": { "gu": "10", "en": "10" }
+                }
+            },
+            {
+                "id": 74,
+                "subject": "Chemistry",
+                "question": {
+                    "gu": "$(P+\\frac{an^{2}}{V^{2}})(V-nb)=nRT$ વાન ડર વાલ્સ વાયુ સમીકરણમાં પેરામીટર ’a’નો એકમ છે:",
+                    "en": "In van der Waals gas equation $(P+\\frac{an^{2}}{V^{2}})(V-nb)=nRT$, the unit of parameter 'a' is:"
+                },
+                "options": {
+                    "A": { "gu": "$kg~m~s^{-2}$", "en": "$kg~m~s^{-2}$" },
+                    "B": { "gu": "$dm^{3}~mol^{-1}$", "en": "$dm^{3}~mol^{-1}$" },
+                    "C": { "gu": "$kg~m~s^{-1}$", "en": "$kg~m~s^{-1}$" },
+                    "D": { "gu": "$atm~dm^{6}~mol^{-2}$", "en": "$atm~dm^{6}~mol^{-2}$" }
+                }
+            },
+            {
+                "id": 75,
+                "subject": "Chemistry",
+                "question": {
+                    "gu": "જો લોહીમાં ગ્લુકોઝ ($C_{6}H_{12}O_{6}$) ની સાંદ્રતા $0.72~g~L^{-1}$, તો લોહીમાં ગ્લુકોઝની મોલરિટી . . . . . $\\times 10^{-3}~M$ છે. (નજીકના પૂર્ણાંકમાં)\n(આપેલ છે: આણ્વિય દળ C=12 u, H=1 u, O=16 u)",
+                    "en": "If the concentration of glucose ($C_{6}H_{12}O_{6}$) in blood is $0.72~g~L^{-1}$, then the molarity of glucose in blood is . . . . . $\\times 10^{-3}~M$. (in nearest integer)\n(Given: Molecular mass C=12 u, H=1 u, O=16 u)"
+                },
+                "options": {
+                    "A": { "gu": "4", "en": "4" },
+                    "B": { "gu": "7", "en": "7" },
+                    "C": { "gu": "9", "en": "9" },
+                    "D": { "gu": "11", "en": "11" }
+                }
+            },
+            {
+                "id": 76,
+                "subject": "Chemistry",
+                "question": {
+                    "gu": "ઓકઝેલિક એસીડ ડાયહાઇડ્રેટ નુ જલીય દ્રાવણ 250 mL માં તેનો 6.3 g ધરાવે છે. તો આ દ્રાવણના 10 mL ના સંપૂર્ણ તટસ્થીકરણ માટે જરૂરી $0.1~N~NaOH$ નુ કદ _____ ml જણાવો.",
+                    "en": "An aqueous solution of oxalic acid dihydrate contains 6.3 g in 250 mL. What is the volume in mL of $0.1~N~NaOH$ required for complete neutralization of 10 mL of this solution is _____ ml."
+                },
+                "options": {
+                    "A": { "gu": "4", "en": "4" },
+                    "B": { "gu": "20", "en": "20" },
+                    "C": { "gu": "2", "en": "2" },
+                    "D": { "gu": "40", "en": "40" }
+                }
+            },
+            {
+                "id": 77,
+                "subject": "Chemistry",
+                "question": {
+                    "gu": "એક સંક્રાંતિ તત્વ M એક બાષ્પશીલ ક્લોરાઇડ બનાવે છે. જેની બાષ્પઘનતા 94.8 છે. જો તે 74.75% ક્લોરિન ધરાવે તો ધાતુ ક્લોરાઇડનું સૂત્ર શું થશે ?",
+                    "en": "A transition element M forms a volatile chloride with a vapor density of 94.8. If it contains 74.75% chlorine, what will be the formula of the metal chloride?"
+                },
+                "options": {
+                    "A": { "gu": "$MCl_{3}$", "en": "$MCl_{3}$" },
+                    "B": { "gu": "$MCl_{2}$", "en": "$MCl_{2}$" },
+                    "C": { "gu": "$MCl_{4}$", "en": "$MCl_{4}$" },
+                    "D": { "gu": "$MCl_{5}$", "en": "$MCl_{5}$" }
+                }
+            },
+            {
+                "id": 78,
+                "subject": "Chemistry",
+                "question": {
+                    "gu": "એક અજ્ઞાત ક્લોરોહાઇડ્રોકાર્બન 3.55% ક્લોરિન ધરાવે છે. જો હાઇડ્રોકાર્બન નો દરેક અણુ એક ક્લોરિન પરમાણુ ધરાવતો હોય તો 1 g ક્લોરોહાઇડ્રોકાર્બન માં હાજર ક્લોરિન પરમાણુઓની સંખ્યા જણાવો.(પરમાણ્વીય દળ $Cl = 35.5~u$, એવોગેડ્રો અચળાંક $=6.023\\times10^{23}~mol^{-1})$",
+                    "en": "An unknown chlorohydrocarbon contains 3.55% chlorine. If each molecule of the hydrocarbon contains one chlorine atom, then find the number of chlorine atoms present in 1 g chlorohydrocarbon. (Atomic mass $Cl = 35.5~u$, Avogadro's constant $=6.023\\times10^{23}~mol^{-1})$"
+                },
+                "options": {
+                    "A": { "gu": "$6.023\\times10^{9}$", "en": "$6.023\\times10^{9}$" },
+                    "B": { "gu": "$6.023\\times10^{23}$", "en": "$6.023\\times10^{23}$" },
+                    "C": { "gu": "$6.023\\times10^{21}$", "en": "$6.023\\times10^{21}$" },
+                    "D": { "gu": "$6.023\\times10^{20}$", "en": "$6.023\\times10^{20}$" }
+                }
+            },
+            {
+                "id": 79,
+                "subject": "Chemistry",
+                "question": {
+                    "gu": "10 mL, $2~M~NaOH$ ના દ્રાવણને 200 mL, $0.5~M~NaOH$ ના દ્રાવણમાં ઉમેરવામાં આવે તો અંતિમ દ્રાવણની સાંદ્રતા M થશે ?",
+                    "en": "If 10 mL of $2~M~NaOH$ solution is added to 200 mL of $0.5~M~NaOH$ solution, what will be the concentration M of the final solution?"
+                },
+                "options": {
+                    "A": { "gu": "0.57", "en": "0.57" },
+                    "B": { "gu": "5.7", "en": "5.7" },
+                    "C": { "gu": "11.4", "en": "11.4" },
+                    "D": { "gu": "1.14", "en": "1.14" }
+                }
+            },
+            {
+                "id": 80,
+                "subject": "Chemistry",
+                "question": {
+                    "gu": "અચળ તાપમાને અને દબાણે 6 litres આલ્કેનના સંપૂર્ણ દહન માટે 27 litres ઓક્સિજનની જરૂર છે. તો તે આલ્કેન......",
+                    "en": "At constant temperature and pressure, 27 litres of oxygen is required for complete combustion of 6 litres of alkane. Then the alkane is......"
+                },
+                "options": {
+                    "A": { "gu": "ઈથીન", "en": "Ethene" },
+                    "B": { "gu": "2- બ્યુટીન", "en": "2- Butene" },
+                    "C": { "gu": "1- બ્યુટીન", "en": "1- Butene" },
+                    "D": { "gu": "પ્રોપિન", "en": "Propene" }
+                }
+            },
+            {
+                "id": 81,
+                "subject": "Chemistry",
+                "question": {
+                    "gu": "50 mL 16.9% $AgNO_{3}$ અને 50 mL 5.8% NaCl ના દ્રાવણને મિશ્ર કરતાં મળતાં અવક્ષેપનું વજન કેટલા _____ g હશે?",
+                    "en": "What will be the weight in _____ g of the precipitate obtained by mixing 50 mL of 16.9% $AgNO_{3}$ and 50 mL of 5.8% NaCl solution?"
+                },
+                "options": {
+                    "A": { "gu": "3.5", "en": "3.5" },
+                    "B": { "gu": "7", "en": "7" },
+                    "C": { "gu": "14", "en": "14" },
+                    "D": { "gu": "28", "en": "28" }
+                }
+            },
+            {
+                "id": 82,
+                "subject": "Chemistry",
+                "question": {
+                    "gu": "1 L પ્રોપેન ($C_{3}H_{8}$) ના દહન માટે જરૂરી $O_{2}$ નું $0°C$ તાપમાને અને 1 વાતા. દબાણે કદ કેટલા _____ L થશે?",
+                    "en": "What will be the volume in _____ L of $O_{2}$ required for combustion of 1 L propane ($C_{3}H_{8}$) at $0°C$ and 1 atm pressure?"
+                },
+                "options": {
+                    "A": { "gu": "5", "en": "5" },
+                    "B": { "gu": "10", "en": "10" },
+                    "C": { "gu": "7", "en": "7" },
+                    "D": { "gu": "6", "en": "6" }
+                }
+            },
+            {
+                "id": 83,
+                "subject": "Chemistry",
+                "question": {
+                    "gu": "એક કાર્બોનેટ ($M_{2}CO_{3}$) ના 1 ગ્રામની અધિકતમ HCl સાથે પ્રક્રિયા કરતાં 0.01186 મોલ $CO_{2}$ ઉત્પન્ન થાય છે. તો $M_{2}CO_{3}$ નું મોલર દળ $g~mol^{-1}$ માં શોધો.",
+                    "en": "When 1 gram of a carbonate ($M_{2}CO_{3}$) reacts with excess HCl, 0.01186 mol of $CO_{2}$ is produced. Then find the molar mass of $M_{2}CO_{3}$ in $g~mol^{-1}$."
+                },
+                "options": {
+                    "A": { "gu": "1186", "en": "1186" },
+                    "B": { "gu": "84.3", "en": "84.3" },
+                    "C": { "gu": "118.6", "en": "118.6" },
+                    "D": { "gu": "11.86", "en": "11.86" }
+                }
+            },
+            {
+                "id": 84,
+                "subject": "Chemistry",
+                "question": {
+                    "gu": "10 g હાઇડ્રોજન અને 64 g ઓક્સિજનને સ્ટીલના વાસણમાં વિસ્ફોટ કરવામાં આવે, તો આ પ્રક્રિયામાં ઉત્પન્ન થતા પાણીનો જથ્થો _____ mol થશે.",
+                    "en": "If 10 g of hydrogen and 64 g of oxygen are exploded in a steel vessel, the amount of water produced in this reaction will be _____ mol."
+                },
+                "options": {
+                    "A": { "gu": "3", "en": "3" },
+                    "B": { "gu": "4", "en": "4" },
+                    "C": { "gu": "1", "en": "1" },
+                    "D": { "gu": "2", "en": "2" }
+                }
+            },
+            {
+                "id": 85,
+                "subject": "Chemistry",
+                "question": {
+                    "gu": "$2~M$ સલ્ફ્યુરિક એસિડની નોર્માલિટી જણાવો. _____",
+                    "en": "State the normality of $2~M$ sulfuric acid. _____"
+                },
+                "options": {
+                    "A": { "gu": "2N", "en": "2N" },
+                    "B": { "gu": "4N", "en": "4N" },
+                    "C": { "gu": "N/2", "en": "N/2" },
+                    "D": { "gu": "N/4", "en": "N/4" }
+                }
+            },
+            {
+                "id": 86,
+                "subject": "Chemistry",
+                "question": {
+                    "gu": "$H_{3}PO_{4}$ ના $1~M$ દ્રાવણની નોર્માલિટી N જણાવો.",
+                    "en": "State the normality N of $1~M$ solution of $H_{3}PO_{4}$."
+                },
+                "options": {
+                    "A": { "gu": "0.5", "en": "0.5" },
+                    "B": { "gu": "1", "en": "1" },
+                    "C": { "gu": "2", "en": "2" },
+                    "D": { "gu": "3", "en": "3" }
+                }
+            },
+            {
+                "id": 87,
+                "subject": "Chemistry",
+                "question": {
+                    "gu": "નીચેનામાંથી કયા પરમાણુઓની સંખ્યા મહત્તમ છે?",
+                    "en": "Which of the following has the maximum number of atoms?"
+                },
+                "options": {
+                    "A": { "gu": "$O_{2}$ ના 16 gm", "en": "$O_{2}$ in 16 gm" },
+                    "B": { "gu": "$NO_{2}$ ના 16 gm", "en": "$NO_{2}$ in 16 gm" },
+                    "C": { "gu": "$N_{2}$ ના 17 gm", "en": "$N_{2}$ in 17 gm" },
+                    "D": { "gu": "$H_{2}$ ના 112 gm", "en": "$H_{2}$ in 112 gm" }
+                }
+            },
+            {
+                "id": 88,
+                "subject": "Chemistry",
+                "question": {
+                    "gu": "એક ગ્રામ હાઇડ્રોજનમાં _____ અણુઓ રહેલા છે?",
+                    "en": "How many _____ molecules are present in one gram of hydrogen?"
+                },
+                "options": {
+                    "A": { "gu": "$6.02\\times10^{23}$", "en": "$6.02\\times10^{23}$" },
+                    "B": { "gu": "$3.01\\times10^{23}$", "en": "$3.01\\times10^{23}$" },
+                    "C": { "gu": "$2.5\\times10^{23}$", "en": "$2.5\\times10^{23}$" },
+                    "D": { "gu": "$1.5\\times10^{23}$", "en": "$1.5\\times10^{23}$" }
+                }
+            },
+            {
+                "id": 89,
+                "subject": "Chemistry",
+                "question": {
+                    "gu": "$\\frac{(29.2-20.2)(1.79\\times10^{5})}{1.37}$ રજૂઆતના અંતિમ જવાબમાં અર્થસૂચક અંકોની સંખ્યા ..... છે.",
+                    "en": "The number of significant figures in the final answer of the expression $\\frac{(29.2-20.2)(1.79\\times10^{5})}{1.37}$ is....."
+                },
+                "options": {
+                    "A": { "gu": "1", "en": "1" },
+                    "B": { "gu": "2", "en": "2" },
+                    "C": { "gu": "3", "en": "3" },
+                    "D": { "gu": "4", "en": "4" }
+                }
+            },
+            {
+                "id": 90,
+                "subject": "Chemistry",
+                "question": {
+                    "gu": "$CuSO_{4}$ ના $1 \\times 10^{22}$ અણુઓનું દળ. _____ g",
+                    "en": "Mass of $1 \\times 10^{22}$ $CuSO_{4}$ molecules. _____ g"
+                },
+                "options": {
+                    "A": { "gu": "41.59", "en": "41.59" },
+                    "B": { "gu": "415.9", "en": "415.9" },
+                    "C": { "gu": "4.159", "en": "4.159" },
+                    "D": { "gu": "None of these", "en": "None of these" }
+                }
+            }
+        ];
+        
+        // Chemistry answer key (questions 46-90)
+        const chemistryAnswerKey = {
+            "46": "D", "47": "D", "48": "C", "49": "A", "50": "A",
+            "51": "D", "52": "B", "53": "A", "54": "B", "55": "A",
+            "56": "B", "57": "B", "58": "C", "59": "C", "60": "A",
+            "61": "B", "62": "B", "63": "A", "64": "D", "65": "D",
+            "66": "C", "67": "D", "68": "B", "69": "C", "70": "A",
+            "71": "C", "72": "A", "73": "A", "74": "D", "75": "A",
+            "76": "D", "77": "A", "78": "D", "79": "A", "80": "D",
+            "81": "B", "82": "A", "83": "B", "84": "B", "85": "B",
+            "86": "D", "87": "D", "88": "B", "89": "C", "90": "C"
+        };
+
+        let currentQuestionIndex = 0;
+        let userSelections = {};
+        let currentLanguage = 'gu';
+
+        const mainQuizHeader = document.getElementById('main-quiz-header');
+        const homeScreen = document.getElementById('home-screen');
+        const chapterInfo = document.getElementById('chapter-info');
+        const questionsCount = document.getElementById('questions-count');
+        const scoringInfo = document.getElementById('scoring-info');
+        const resultsInfo = document.getElementById('results-info');
+        const startQuizButton = document.getElementById('start-quiz-button');
+
+        const quizContentElement = document.getElementById('quiz-content');
+        const questionTextElement = document.getElementById('question-text');
+        const optionsListElement = document.getElementById('options-list');
+        const prevButton = document.getElementById('prev-button');
+        const nextButton = document.getElementById('next-button');
+        const messageBox = document.getElementById('message-box');
+        const languageSelect = document.getElementById('language-select');
+        const resultScreen = document.getElementById('result-screen');
+        const scoreTextElement = document.getElementById('score-text');
+        const restartButton = document.getElementById('restart-button');
+        const questionCounter = document.getElementById('question-counter');
+        const subjectBadge = document.getElementById('subject-badge');
+        const progressBar = document.getElementById('progress-bar');
+
+        // Text content for different languages
+        const textContent = {
+            "gu": {
+                "header": "રસાયણશાસ્ત્ર ક્વિઝ",
+                "chapter": "પ્રકરણ : રસાયણશાસ્ત્ર",
+                "questionsCount": `ક્વિઝમાં ${chemistryQuestionsData.length} પ્રશ્નો છે`,
+                "scoring": "દરેક સાચા જવાબ માટે +4 ગુણ અને ખોટા જવાબ માટે -1 ગુણ",
+                "results": "પરિણામ અંતમાં બતાવવામાં આવશે",
+                "startQuiz": "ક્વિઝ શરૂ કરો",
+                "previous": "પાછળ",
+                "next": "આગળ",
+                "showResults": "પરિણામ બતાવો",
+                "totalScore": "તમારો કુલ સ્કોર:",
+                "restartQuiz": "ક્વિઝ ફરી શરૂ કરો",
+                "noMoreQuestions": "વધુ પ્રશ્નો નથી!",
+                "endOfQuiz": "તમે ક્વિઝના અંતે પહોંચી ગયા છો!",
+                "chemistry": "રસાયણશાસ્ત્ર",
+                "question": "પ્રશ્ન" // Added for question counter
+            },
+            "en": {
+                "header": "CHEMISTRY QUIZ",
+                "chapter": "CHAPTER : CHEMISTRY",
+                "questionsCount": `QUIZ CONTAINS ${chemistryQuestionsData.length} questions`,
+                "scoring": "EACH RIGHT ANSWER +4 MARKS and WRONG ANSWER -1 MARKS",
+                "results": "Results will be shown at the end",
+                "startQuiz": "Start Quiz",
+                "previous": "Previous",
+                "next": "Next",
+                "showResults": "Show Results",
+                "totalScore": "Your Total Score:",
+                "restartQuiz": "Restart Quiz",
+                "noMoreQuestions": "No more questions!",
+                "endOfQuiz": "You have reached the end of the quiz!",
+                "chemistry": "CHEMISTRY",
+                "question": "Question" // Added for question counter
+            }
+        };
+
+        // Function to update all text elements based on current language
+        function updateLanguageText() {
+            mainQuizHeader.textContent = textContent[currentLanguage].header;
+            chapterInfo.textContent = textContent[currentLanguage].chapter;
+            questionsCount.textContent = textContent[currentLanguage].questionsCount;
+            scoringInfo.textContent = textContent[currentLanguage].scoring;
+            resultsInfo.textContent = textContent[currentLanguage].results;
+            startQuizButton.innerHTML = `<i class="fas fa-play"></i> ${textContent[currentLanguage].startQuiz}`;
+            prevButton.innerHTML = `<i class="fas fa-arrow-left"></i> ${textContent[currentLanguage].previous}`;
+            nextButton.innerHTML = `<i class="fas fa-arrow-right"></i> ${textContent[currentLanguage].next}`;
+            restartButton.innerHTML = `<i class="fas fa-redo"></i> ${textContent[currentLanguage].restartQuiz}`;
+            subjectBadge.textContent = textContent[currentLanguage].chemistry;
+
+            // Re-render the current question if quiz content is visible
+            if (quizContentElement.classList.contains('show')) {
+                renderQuestion(currentQuestionIndex);
+            }
+            // Update score text if result screen is visible
+            if (resultScreen.classList.contains('show')) {
+                let totalScore = calculateScore();
+                scoreTextElement.textContent = `${textContent[currentLanguage].totalScore} ${totalScore}`;
+            }
+        }
+
+        // Function to display messages to the user
+        function showMessage(message, duration = 3000) {
+            messageBox.textContent = message;
+            messageBox.classList.add('show');
+            setTimeout(() => {
+                messageBox.classList.remove('show');
+            }, duration);
+        }
+
+        // Function to calculate progress
+        function updateProgressBar() {
+            const progressPercentage = ((currentQuestionIndex + 1) / chemistryQuestionsData.length) * 100;
+            progressBar.style.width = `${progressPercentage}%`;
+        }
+
+        // Function to render a question and its options based on current language
+        function renderQuestion(index) {
+            // Hide result screen if visible
+            resultScreen.classList.remove('show');
+            homeScreen.classList.remove('show');
+            quizContentElement.classList.add('show'); // Show quiz content
+
+            if (index < 0 || index >= chemistryQuestionsData.length) {
+                showResults();
+                return;
+            }
+
+            const question = chemistryQuestionsData[index];
+            const currentQuestionData = question.question[currentLanguage];
+
+            // Update question counter to start from 1
+            questionCounter.textContent = `${textContent[currentLanguage].question} ${index + 1}/${chemistryQuestionsData.length}`;
+            
+            // Update progress bar
+            updateProgressBar();
+
+            // Clear previous content
+            questionTextElement.innerHTML = '';
+            optionsListElement.innerHTML = '';
+
+            // Render question, using index + 1 for display
+            if (typeof currentQuestionData === 'string') {
+                questionTextElement.innerHTML = `<strong>Q${index + 1}.</strong> ${currentQuestionData}`;
+            } else {
+                questionTextElement.innerHTML = `<strong>Q${index + 1}.</strong> ${currentQuestionData}`;
+            }
+
+            // Render options
+            for (const key in question.options) {
+                const optionValue = question.options[key][currentLanguage];
+                const optionItem = document.createElement('li');
+                optionItem.className = 'option-item';
+                optionItem.innerHTML = `<span class="option-label">${key}</span> ${optionValue}`;
+                optionItem.dataset.optionKey = key;
+
+                // Mark as selected if previously chosen
+                if (userSelections[question.id] === key) {
+                    optionItem.classList.add('selected');
+                }
+
+                optionItem.addEventListener('click', () => {
+                    // Remove 'selected' class from all options for this question
+                    Array.from(optionsListElement.children).forEach(item => {
+                        item.classList.remove('selected');
+                    });
+                    // Add 'selected' class to the clicked option
+                    optionItem.classList.add('selected');
+                    // Store the user's selection
+                    userSelections[question.id] = key;
+                });
+                optionsListElement.appendChild(optionItem);
+            }
+
+            // After updating the DOM, trigger MathJax to typeset the new content
+            if (window.MathJax) {
+                MathJax.typesetPromise([questionTextElement, optionsListElement]).catch((err) => console.error('MathJax typesetting failed:', err));
+            }
+
+            // Update navigation button states
+            prevButton.disabled = currentQuestionIndex === 0;
+            nextButton.disabled = false;
+
+            // Change "Next" button text to "Submit & Show Results" on the last question
+            if (currentQuestionIndex === chemistryQuestionsData.length - 1) {
+                nextButton.innerHTML = `<i class="fas fa-check-circle"></i> ${textContent[currentLanguage].showResults}`;
+            } else {
+                nextButton.innerHTML = `<i class="fas fa-arrow-right"></i> ${textContent[currentLanguage].next}`;
+            }
+        }
+
+        // Function to calculate score
+        function calculateScore() {
+            let totalScore = 0;
+            chemistryQuestionsData.forEach(question => {
+                const questionId = question.id.toString();
+                const userAnswer = userSelections[questionId];
+                const correctAnswer = chemistryAnswerKey[questionId];
+
+                if (userAnswer && userAnswer === correctAnswer) {
+                    totalScore += 4;
+                } else if (userAnswer && userAnswer !== correctAnswer) {
+                    totalScore -= 1;
+                }
+            });
+            return totalScore;
+        }
+
+        // Function to display results
+        function showResults() {
+            quizContentElement.classList.remove('show');
+            homeScreen.classList.remove('show');
+            resultScreen.classList.add('show');
+
+            const totalScore = calculateScore();
+            scoreTextElement.textContent = `${textContent[currentLanguage].totalScore} ${totalScore}`;
+        }
+
+        // Function to restart the quiz
+        function restartQuiz() {
+            currentQuestionIndex = 0;
+            userSelections = {};
+            resultScreen.classList.remove('show');
+            homeScreen.classList.add('show');
+            updateLanguageText();
+        }
+
+        // Event listener for language selection change
+        languageSelect.addEventListener('change', (event) => {
+            currentLanguage = event.target.value;
+            updateLanguageText();
+        });
+
+        // Event listener for the "Start Quiz" button
+        startQuizButton.addEventListener('click', () => {
+            currentQuestionIndex = 0;
+            userSelections = {};
+            renderQuestion(currentQuestionIndex);
+        });
+
+        // Event listener for the "Previous" button
+        prevButton.addEventListener('click', () => {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderQuestion(currentQuestionIndex);
+            }
+        });
+
+        // Event listener for the "Next" button
+        nextButton.addEventListener('click', () => {
+            if (currentQuestionIndex < chemistryQuestionsData.length - 1) {
+                currentQuestionIndex++;
+                renderQuestion(currentQuestionIndex);
+            } else {
+                showResults();
+            }
+        });
+
+        // Event listener for the "Restart Quiz" button
+        restartButton.addEventListener('click', restartQuiz);
+
+        // Initialize the quiz on window load
+        window.onload = () => {
+            homeScreen.classList.add('show');
+            updateLanguageText();
+        };
+    </script>
+</body>
+</html>
